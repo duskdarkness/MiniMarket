@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo Online</title>
+  <style>
+    :root {
+      --color-primario: #2563eb;
+      --color-fondo: #f8fafc;
+      --color-tarjeta: #ffffff;
+      --color-texto: #1e293b;
+      --color-borde: #e2e8f0;
+      --radio: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--color-fondo); color: var(--color-texto); padding-bottom: 90px; }
+
+    header {
+      background: var(--color-tarjeta);
+      border-bottom: 1px solid var(--color-borde);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo { font-weight: 800; font-size: 1.3rem; color: var(--color-primario); }
+    .btn-carrito-header {
+      background: var(--color-primario);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radio);
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .contenedor { max-width: 1100px; margin: auto; padding: 20px; }
+    .buscador {
+      width: 100%;
+      padding: 14px 20px;
+      border: 1px solid var(--color-borde);
+      border-radius: var(--radio);
+      font-size: 1rem;
+      margin-bottom: 25px;
+      outline: none;
+    }
+    .buscador:focus { border-color: var(--color-primario); }
+
+    .grid-productos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .tarjeta {
+      background: var(--color-tarjeta);
+      border: 1px solid var(--color-borde);
+      border-radius: var(--radio);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s ease;
+    }
+    .tarjeta:hover { transform: translateY(-3px); }
+    
+    .img-contenedor {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #f1f5f9;
+    }
+    .img-contenedor img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+    .nombre-prod { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .precio-prod { font-size: 1.2rem; font-weight: 800; color: var(--color-primario); margin-bottom: 8px; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      width: fit-content;
+      margin-bottom: 12px;
+    }
+    .badge-stock { background: #dcfce7; color: #15803d; }
+    .badge-agotado { background: #fee2e2; color: #b91c1c; }
+
+    .btn-agregar {
+      margin-top: auto;
+      background: var(--color-primario);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-agregar:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: none; justify-content: flex-end; z-index: 100;
+    }
+    .drawer-carrito {
+      background: white; width: 100%; max-width: 420px; height: 100%;
+      padding: 24px; display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+    }
+    .carrito-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .lista-items { flex-grow: 1; overflow-y: auto; list-style: none; }
+    
+    .item-carrito {
+      display: flex; gap: 12px; align-items: center; margin-bottom: 16px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--color-borde);
+    }
+    .item-img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; aspect-ratio: 1/1; }
+    .item-detalles { flex-grow: 1; }
+    .item-controles { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+    .item-btn {
+      width: 26px; height: 26px; border: 1px solid var(--color-borde); background: white;
+      border-radius: 4px; font-weight: bold; cursor: pointer;
+    }
+
+    .carrito-footer { border-top: 1px solid var(--color-borde); padding-top: 20px; }
+    .total-texto { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; }
+    .btn-whatsapp {
+      width: 100%; background: #25d366; color: white; border: none; padding: 14px;
+      border-radius: var(--radio); font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 10px;
+    }
+    .btn-vaciar {
+      width: 100%; background: transparent; color: #ef4444; border: 1px solid #ef4444;
+      padding: 10px; border-radius: var(--radio); font-weight: 600; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo" id="tienda-nombre">Cargando...</div>
+    <button class="btn-carrito-header" onclick="abrirCarrito()">
+      🛒 Carrito (<span id="cuenta-carrito">0</span>)
+    </button>
+  </header>
+
+  <div class="contenedor">
+    <input type="text" class="buscador" id="input-buscador" placeholder="Buscar productos..." oninput="filtrarProductos()">
+    <div class="grid-productos" id="grid">
+      <p>Cargando productos de la tienda...</p>
+    </div>
+  </div>
+
+  <!-- Popup Carrito -->
+  <div class="overlay" id="overlay-carrito" onclick="cerrarCarritoFuera(event)">
+    <div class="drawer-carrito">
+      <div class="carrito-header">
+        <h3>Tu Carrito</h3>
+        <button onclick="cerrarCarrito()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
+      </div>
+      <ul class="lista-items" id="items-carrito"></ul>
+      <div class="carrito-footer">
+        <div class="total-texto">
+          <span>Total:</span>
+          <span id="total-precio">$0.00</span>
+        </div>
+        <button class="btn-whatsapp" onclick="enviarPedidoWhatsApp()">Pedir por WhatsApp 📱</button>
+        <button class="btn-vaciar" onclick="confirmarVaciarCarrito()">Vaciar Carrito</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // TU ENLACE YA ESTÁ PUESTO AQUÍ:
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNIvG0QSLxvVQhBnVHdxhgwFe3I69YIcamg8Eq-76eArg0IU88JijEU4-_Xw58Liy-/exec";
+    
+    // Variables que se llenarán automáticamente desde tu hoja:
+    let telefonoWhatsApp = "";
+    let productos = [];
+    let carrito = [];
+
+    // 1. Obtener datos desde tu Google Apps Script
+    async function cargarDatos() {
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL);
+        const data = await res.json();
+        
+        // Asignar configuración
+        telefonoWhatsApp = data.config.telefono;
+        document.getElementById('tienda-nombre').innerText = data.config.nombre_tienda || "Mi Tienda";
+        
+        // Cargar productos
+        productos = data.productos;
+        renderizarProductos(productos);
+      } catch (err) {
+        document.getElementById('grid').innerHTML = "<p>Error al conectar con la base de datos.</p>";
+      }
+    }
+
+    // 2. Pintar productos
+    function renderizarProductos(lista) {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = "";
+      if (lista.length === 0) {
+        grid.innerHTML = "<p>No hay productos disponibles actualmente.</p>";
+        return;
+      }
+      lista.forEach(prod => {
+        const agotado = prod.stock <= 0;
+        grid.innerHTML += `
+          <div class="tarjeta">
+            <div class="img-contenedor">
+              <img src="${prod.imagen || 'https://via.placeholder.com/300'}" alt="${prod.nombre}" loading="lazy">
+            </div>
+            <div class="info">
+              <span class="nombre-prod">${prod.nombre}</span>
+              <span class="precio-prod">$${prod.precio.toFixed(2)}</span>
+              <span class="badge ${agotado ? 'badge-agotado' : 'badge-stock'}">
+                ${agotado ? 'Agotado' : `Disponibles: ${prod.stock}`}
+              </span>
+              <button class="btn-agregar" ${agotado ? 'disabled' : ''} onclick="agregarAlCarrito('${prod.id}')">
+                ${agotado ? 'Sin stock' : 'Agregar al carrito'}
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filtrarProductos() {
+      const q = document.getElementById('input-buscador').value.toLowerCase();
+      const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(q));
+      renderizarProductos(filtrados);
+    }
+
+    function agregarAlCarrito(id) {
+      const prod = productos.find(p => p.id == id);
+      const enCarrito = carrito.find(item => item.id == id);
+
+      if (enCarrito) {
+        if (enCarrito.cantidad < prod.stock) enCarrito.cantidad++;
+        else alert("Alcanzaste el límite de stock de este producto");
+      } else {
+        carrito.push({ ...prod, cantidad: 1 });
+      }
+      actualizarCarrito();
+    }
+
+    function cambiarCantidad(id, delta) {
+      const item = carrito.find(i => i.id == id);
+      const prod = productos.find(p => p.id == id);
+      if (!item) return;
+
+      item.cantidad += delta;
+      if (item.cantidad > prod.stock) item.cantidad = prod.stock;
+      if (item.cantidad <= 0) carrito = carrito.filter(i => i.id != id);
+      actualizarCarrito();
+    }
+
+    function eliminarItem(id) {
+      carrito = carrito.filter(i => i.id != id);
+      actualizarCarrito();
+    }
+
+    function confirmarVaciarCarrito() {
+      if (carrito.length === 0) return;
+      if (confirm("¿Estás seguro de que deseas vaciar el carrito?")) {
+        carrito = [];
+        actualizarCarrito();
+      }
+    }
+
+    function actualizarCarrito() {
+      const lista = document.getElementById('items-carrito');
+      lista.innerHTML = "";
+      let total = 0;
+      let cantidadTotal = 0;
+
+      carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        cantidadTotal += item.cantidad;
+
+        lista.innerHTML += `
+          <li class="item-carrito">
+            <img src="${item.imagen}" class="item-img">
+            <div class="item-detalles">
+              <div style="font-weight:600;">${item.nombre}</div>
+              <div style="font-size:0.85rem; color:#64748b;">$${item.precio.toFixed(2)} c/u</div>
+              <div class="item-controles">
+                <button class="item-btn" onclick="cambiarCantidad('${item.id}', -1)">-</button>
+                <span>${item.cantidad}</span>
+                <button class="item-btn" onclick="cambiarCantidad('${item.id}', 1)">+</button>
+                <button class="item-btn" style="color:red; margin-left:8px;" onclick="eliminarItem('${item.id}')">🗑</button>
+              </div>
+            </div>
+            <div style="font-weight:bold;">$${subtotal.toFixed(2)}</div>
+          </li>
+        `;
+      });
+
+      document.getElementById('cuenta-carrito').innerText = cantidadTotal;
+      document.getElementById('total-precio').innerText = `$${total.toFixed(2)}`;
+    }
+
+    function abrirCarrito() { document.getElementById('overlay-carrito').style.display = 'flex'; }
+    function cerrarCarrito() { document.getElementById('overlay-carrito').style.display = 'none'; }
+    function cerrarCarritoFuera(e) { if(e.target.id === 'overlay-carrito') cerrarCarrito(); }
+
+    async function enviarPedidoWhatsApp() {
+      if (carrito.length === 0) return alert("Tu carrito está vacío");
+      if (!telefonoWhatsApp) return alert("El teléfono de la tienda no está configurado en la hoja.");
+
+      const idPedido = "PED-" + Math.floor(1000 + Math.random() * 9000);
+      let total = 0;
+      let textoProductos = "";
+
+      carrito.forEach(i => {
+        total += i.precio * i.cantidad;
+        textoProductos += `• ${i.cantidad}x ${i.nombre} ($${(i.precio * i.cantidad).toFixed(2)})\n`;
+      });
+
+      // Registrar pedido en Google Sheets
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+          accion: "nuevoPedido",
+          idPedido: idPedido,
+          detalle: textoProductos.replace(/\n/g, ", "),
+          total: total
+        })
+      });
+
+      // Abrir WhatsApp con el teléfono configurado
+      const mensaje = `¡Hola! Quiero hacer el siguiente pedido (${idPedido}):\n\n${textoProductos}\n*Total: $${total.toFixed(2)}*`;
+      const urlWhatsapp = `https://wa.me/${telefonoWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+      
+      window.open(urlWhatsapp, '_blank');
+      carrito = [];
+      actualizarCarrito();
+      cerrarCarrito();
+    }
+
+    // Inicializar carga
+    cargarDatos();
+  </script>
+</body>
+</html>
