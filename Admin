@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador</title>
+  <style>
+    :root {
+      --color-primario: #3b82f6;
+      --color-fondo: #0f172a;
+      --color-tarjeta: #1e293b;
+      --color-texto: #f8fafc;
+      --color-borde: #334155;
+      --radio: 12px;
+      --fondo-imagen: none;
+      --opacidad-fondo: 0.15;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    
+    body {
+      background-color: var(--color-fondo);
+      color: var(--color-texto);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Fondo personalizable */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: var(--fondo-imagen);
+      background-size: cover;
+      background-position: center;
+      opacity: var(--opacidad-fondo);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    header {
+      background: var(--color-tarjeta);
+      border-bottom: 1px solid var(--color-borde);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo { font-weight: 800; font-size: 1.2rem; color: var(--color-primario); display: flex; align-items: center; gap: 8px; }
+
+    /* Navegación por pestañas */
+    nav { display: flex; gap: 8px; }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--color-borde);
+      color: var(--color-texto);
+      padding: 8px 16px;
+      border-radius: var(--radio);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab-btn.activo { background: var(--color-primario); color: white; border-color: var(--color-primario); }
+
+    .contenedor { max-width: 800px; margin: 30px auto; padding: 0 20px; width: 100%; }
+    .seccion { display: none; }
+    .seccion.activa { display: block; }
+
+    .tarjeta {
+      background: var(--color-tarjeta);
+      border: 1px solid var(--color-borde);
+      border-radius: var(--radio);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    h2 { margin-bottom: 20px; font-size: 1.3rem; }
+
+    /* Formularios */
+    .campo { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; opacity: 0.9; }
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--color-borde);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.2);
+      color: var(--color-texto);
+      font-size: 1rem;
+      outline: none;
+    }
+    input:focus { border-color: var(--color-primario); }
+
+    .fila-doble { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+    .btn-principal {
+      width: 100%;
+      background: var(--color-primario);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radio);
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-principal:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Previsualización imagen */
+    .preview-box {
+      width: 100%;
+      aspect-ratio: 1/1;
+      max-width: 200px;
+      margin: 10px auto;
+      border: 2px dashed var(--color-borde);
+      border-radius: var(--radio);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: rgba(0,0,0,0.1);
+    }
+    .preview-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+
+    /* Tarjetas de Pedidos */
+    .pedido-card {
+      border: 1px solid var(--color-borde);
+      border-radius: var(--radio);
+      padding: 16px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.02);
+    }
+    .badge-pendiente { background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+    .badge-confirmado { background: #bbf7d0; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+    .btn-confirmar {
+      background: #22c55e; color: white; border: none; padding: 8px 14px;
+      border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">⚙️ Panel Admin</div>
+    <nav>
+      <button class="tab-btn activo" onclick="cambiarTab('tab-nuevo')">📦 Producto</button>
+      <button class="tab-btn" onclick="cambiarTab('tab-pedidos')">🔔 Pedidos</button>
+      <button class="tab-btn" onclick="cambiarTab('tab-ajustes')">🎨 Estilo & Config</button>
+    </nav>
+  </header>
+
+  <div class="contenedor">
+
+    <!-- 1. NUEVO PRODUCTO -->
+    <div class="seccion activa" id="tab-nuevo">
+      <div class="tarjeta">
+        <h2>Subir Nuevo Producto</h2>
+        
+        <div class="campo">
+          <label>Nombre del Producto</label>
+          <input type="text" id="p-nombre" placeholder="Ej: Camisa Oversize Negra">
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label>Precio ($)</label>
+            <input type="number" id="p-precio" placeholder="25.00" step="0.01">
+          </div>
+          <div class="campo">
+            <label>Stock Disponible</label>
+            <input type="number" id="p-stock" placeholder="10">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Unidades Pre-Compradas (Solo visible para ti)</label>
+          <input type="number" id="p-preventas" placeholder="0">
+        </div>
+
+        <div class="campo">
+          <label>Imagen del Producto (Formato Cuadrado Automático)</label>
+          <input type="file" id="p-imagen" accept="image/*" onchange="mostrarPreview(event)">
+          <div class="preview-box">
+            <span id="preview-texto" style="font-size:0.8rem; color:#94a3b8;">Sin imagen</span>
+            <img id="img-preview" src="">
+          </div>
+        </div>
+
+        <button class="btn-principal" id="btn-guardar-prod" onclick="guardarProducto()">Subir y Publicar</button>
+      </div>
+    </div>
+
+    <!-- 2. PEDIDOS PENDIENTES -->
+    <div class="seccion" id="tab-pedidos">
+      <div class="tarjeta">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h2>Gestión de Pedidos</h2>
+          <button class="tab-btn" onclick="cargarAdminData()">🔄 Actualizar</button>
+        </div>
+        <div id="lista-pedidos">
+          <p>Cargando pedidos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. CONFIGURACIÓN Y ESTILO -->
+    <div class="seccion" id="tab-ajustes">
+      <div class="tarjeta">
+        <h2>Vincular Cloudinary</h2>
+        <div class="fila-doble">
+          <div class="campo">
+            <label>Cloud Name</label>
+            <input type="text" id="c-cloudname" placeholder="Tu cloud_name">
+          </div>
+          <div class="campo">
+            <label>Upload Preset (Unsigned)</label>
+            <input type="text" id="c-preset" placeholder="Tu upload_preset">
+          </div>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Datos de la Tienda</h2>
+        <div class="campo">
+          <label>Nombre de la Tienda</label>
+          <input type="text" id="cfg-nombre" placeholder="Mi Tienda Online">
+        </div>
+        <div class="campo">
+          <label>Teléfono WhatsApp (Con código país, ej: 584120000000)</label>
+          <input type="text" id="cfg-telefono" placeholder="58XXXXXXXXXX">
+        </div>
+        <button class="btn-principal" onclick="guardarConfiguracionTienda()">Guardar Datos de Tienda</button>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Personalización Visual 100%</h2>
+        <div class="fila-doble">
+          <div class="campo">
+            <label>Color Principal</label>
+            <input type="color" id="theme-primario" onchange="actualizarTemaEnVivo()">
+          </div>
+          <div class="campo">
+            <label>Color de Fondo</label>
+            <input type="color" id="theme-fondo" onchange="actualizarTemaEnVivo()">
+          </div>
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label>Color de Tarjetas</label>
+            <input type="color" id="theme-tarjeta" onchange="actualizarTemaEnVivo()">
+          </div>
+          <div class="campo">
+            <label>Color de Texto</label>
+            <input type="color" id="theme-texto" onchange="actualizarTemaEnVivo()">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>URL de Imagen de Fondo (Opcional)</label>
+          <input type="text" id="theme-bg-url" placeholder="https://.../imagen.jpg" oninput="actualizarTemaEnVivo()">
+        </div>
+
+        <div class="campo">
+          <label>Opacidad del Fondo: <span id="val-opacidad">15%</span></label>
+          <input type="range" id="theme-opacidad" min="0" max="1" step="0.05" value="0.15" oninput="actualizarTemaEnVivo()">
+        </div>
+
+        <button class="btn-principal" onclick="guardarTemaDefinitivo()">Guardar Estilo</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNIvG0QSLxvVQhBnVHdxhgwFe3I69YIcamg8Eq-76eArg0IU88JijEU4-_Xw58Liy-/exec";
+    let archivoImagen = null;
+
+    // Cambiar de Pestaña
+    function cambiarTab(idTab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+      document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+      event.target.classList.add('activo');
+      document.getElementById(idTab).classList.add('activa');
+      if (idTab === 'tab-pedidos') cargarAdminData();
+    }
+
+    // Previsualización de imagen
+    function mostrarPreview(e) {
+      const file = e.target.files[0];
+      if (file) {
+        archivoImagen = file;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const img = document.getElementById('img-preview');
+          img.src = evt.target.result;
+          img.style.display = 'block';
+          document.getElementById('preview-texto').style.display = 'none';
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // 1. SUBIR PRODUCTO A CLOUDINARY Y GOOGLE SHEETS
+    async function guardarProducto() {
+      const nombre = document.getElementById('p-nombre').value;
+      const precio = document.getElementById('p-precio').value;
+      const stock = document.getElementById('p-stock').value;
+      const preventas = document.getElementById('p-preventas').value || 0;
+
+      const cloudName = localStorage.getItem('c_cloudname');
+      const preset = localStorage.getItem('c_preset');
+
+      if (!nombre || !precio || !stock) return alert("Por favor llena los campos principales");
+      if (!archivoImagen) return alert("Selecciona una imagen para el producto");
+      if (!cloudName || !preset) return alert("Primero configura tu Cloud Name y Preset en la pestaña 'Estilo & Config'");
+
+      const btn = document.getElementById('btn-guardar-prod');
+      btn.disabled = true;
+      btn.innerText = "Subiendo imagen a Cloudinary...";
+
+      try {
+        // A. Subir imagen a Cloudinary
+        const formData = new FormData();
+        formData.append('file', archivoImagen);
+        formData.append('upload_preset', preset);
+
+        const resCloud = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const cloudData = await resCloud.json();
+        
+        if (!cloudData.secure_url) throw new Error("Error al subir a Cloudinary");
+        const urlImagen = cloudData.secure_url;
+
+        // B. Guardar datos en Google Sheets
+        btn.innerText = "Guardando en Google Sheets...";
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            accion: "agregarProducto",
+            nombre: nombre,
+            precio: Number(precio),
+            stock: Number(stock),
+            preventas: Number(preventas),
+            imagen: urlImagen
+          })
+        });
+
+        alert("¡Producto publicado con éxito!");
+        // Limpiar formulario
+        document.getElementById('p-nombre').value = "";
+        document.getElementById('p-precio').value = "";
+        document.getElementById('p-stock').value = "";
+        document.getElementById('p-preventas').value = "";
+        document.getElementById('img-preview').style.display = "none";
+        document.getElementById('preview-texto').style.display = "block";
+        archivoImagen = null;
+      } catch (err) {
+        alert("Ocurrió un error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Subir y Publicar";
+      }
+    }
+
+    // 2. CARGAR PEDIDOS Y CONFIRMAR VENTA
+    async function cargarAdminData() {
+      const contenedor = document.getElementById('lista-pedidos');
+      contenedor.innerHTML = "<p>Cargando...</p>";
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?admin=true`);
+        const data = await res.json();
+        
+        if (!data.pedidos || data.pedidos.length === 0) {
+          contenedor.innerHTML = "<p>No hay pedidos registrados.</p>";
+          return;
+        }
+
+        contenedor.innerHTML = "";
+        data.pedidos.reverse().forEach(p => {
+          const pendiente = p.estado === "Pendiente";
+          contenedor.innerHTML += `
+            <div class="pedido-card">
+              <div>
+                <div style="font-weight:bold; margin-bottom:4px;">${p.idPedido} • $${Number(p.total).toFixed(2)}</div>
+                <div style="font-size:0.85rem; opacity:0.8; margin-bottom:6px;">${p.detalle}</div>
+                <span class="${pendiente ? 'badge-pendiente' : 'badge-confirmado'}">${p.estado}</span>
+                <span style="font-size:0.75rem; opacity:0.6; margin-left:8px;">${p.fecha}</span>
+              </div>
+              ${pendiente ? `<button class="btn-confirmar" onclick="confirmarVenta(${p.fila})">Confirmar Venta ✅</button>` : ''}
+            </div>
+          `;
+        });
+      } catch (err) {
+        contenedor.innerHTML = "<p>Error al cargar los pedidos.</p>";
+      }
+    }
+
+    async function confirmarVenta(filaPedido) {
+      if (!confirm("¿Confirmar esta venta? Se marcará como Confirmada.")) return;
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ accion: "confirmarPedido", filaPedido: filaPedido })
+      });
+      alert("¡Venta confirmada!");
+      cargarAdminData();
+    }
+
+    // 3. GUARDAR CONFIGURACIÓN DE TIENDA
+    async function guardarConfiguracionTienda() {
+      const nombre = document.getElementById('cfg-nombre').value;
+      const telefono = document.getElementById('cfg-telefono').value;
+      
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ accion: "guardarConfig", nombre_tienda: nombre, telefono: telefono })
+      });
+      alert("Configuración de tienda guardada");
+    }
+
+    // 4. TEMAS Y PERSONALIZACIÓN EN VIVO
+    function actualizarTemaEnVivo() {
+      const primario = document.getElementById('theme-primario').value;
+      const fondo = document.getElementById('theme-fondo').value;
+      const tarjeta = document.getElementById('theme-tarjeta').value;
+      const texto = document.getElementById('theme-texto').value;
+      const bgUrl = document.getElementById('theme-bg-url').value;
+      const opacidad = document.getElementById('theme-opacidad').value;
+
+      document.documentElement.style.setProperty('--color-primario', primario);
+      document.documentElement.style.setProperty('--color-fondo', fondo);
+      document.documentElement.style.setProperty('--color-tarjeta', tarjeta);
+      document.documentElement.style.setProperty('--color-texto', texto);
+      document.documentElement.style.setProperty('--fondo-imagen', bgUrl ? `url('${bgUrl}')` : 'none');
+      document.documentElement.style.setProperty('--opacidad-fondo', opacidad);
+      document.getElementById('val-opacidad').innerText = `${Math.round(opacidad * 100)}%`;
+    }
+
+    function guardarTemaDefinitivo() {
+      const tema = {
+        primario: document.getElementById('theme-primario').value,
+        fondo: document.getElementById('theme-fondo').value,
+        tarjeta: document.getElementById('theme-tarjeta').value,
+        texto: document.getElementById('theme-texto').value,
+        bgUrl: document.getElementById('theme-bg-url').value,
+        opacidad: document.getElementById('theme-opacidad').value,
+      };
+      localStorage.setItem('app_tema', JSON.stringify(tema));
+
+      // Guardar también Cloudinary
+      localStorage.setItem('c_cloudname', document.getElementById('c-cloudname').value.trim());
+      localStorage.setItem('c_preset', document.getElementById('c-preset').value.trim());
+
+      alert("¡Estilo y configuraciones guardadas!");
+    }
+
+    function cargarAjustesGuardados() {
+      // Cargar Cloudinary
+      document.getElementById('c-cloudname').value = localStorage.getItem('c_cloudname') || "";
+      document.getElementById('c-preset').value = localStorage.getItem('c_preset') || "";
+
+      // Cargar Tema
+      const guardado = localStorage.getItem('app_tema');
+      if (guardado) {
+        const tema = JSON.parse(guardado);
+        document.getElementById('theme-primario').value = tema.primario;
+        document.getElementById('theme-fondo').value = tema.fondo;
+        document.getElementById('theme-tarjeta').value = tema.tarjeta;
+        document.getElementById('theme-texto').value = tema.texto;
+        document.getElementById('theme-bg-url').value = tema.bgUrl || "";
+        document.getElementById('theme-opacidad').value = tema.opacidad || 0.15;
+        actualizarTemaEnVivo();
+      }
+    }
+
+    // Iniciar
+    cargarAjustesGuardados();
+  </script>
+</body>
+</html>
